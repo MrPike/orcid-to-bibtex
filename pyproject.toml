@@ -7,7 +7,7 @@ license = "MIT"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-aiohttp-retry = "^2.4.8"
+aiohttp = "^3.8.1"
 
 [tool.poetry.dev-dependencies]
 
