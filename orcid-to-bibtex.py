@@ -1,3 +1,6 @@
+import pprint
+from collections import defaultdict
+
 from argparse import Namespace, ArgumentParser
 from typing import Any
 from asyncio import Semaphore, run, gather
@@ -29,7 +32,20 @@ async def get_orcid_works(orcid_id: str) -> Any:
         bib = []
         for work in results:
             if work['citation']['citation-type'] == 'bibtex':
-                bib.append(work['citation']['citation-value'])
+                bib.append(work['citation']['citation-value'].encode('utf-8'))
+
+        '''
+            A (very) hacky fix for duplicate entry keys in BibTeX.
+            This will need improving, along with additional processing (formatting, validation) of the resulting
+            BibTeX output. 
+        '''
+        bib_d = defaultdict(int)
+        for i, b in enumerate(bib):
+            bib_key = b.split('{')[1].split(',')[0]
+            bib_d[bib_key] += 1
+            if bib_d[bib_key] > 1:
+                bib[i] = bib[i].replace(f"{{{bib_key},", f"{{{bib_key}_{bib_d[bib_key]},")
+
         return bib
 
 
@@ -44,7 +60,7 @@ def parse_cli_args() -> Namespace:
 
 async def main():
     args = parse_cli_args()
-    orcid = args.ORCID # Test with: '0000-0002-1543-0148'
+    orcid = args.ORCID  # Test with: '0000-0002-1543-0148'
     bib_path = args.o or Path(f'{orcid}.bib')
     bib = await get_orcid_works(orcid)
     bib_path.write_text('\n'.join(bib))
