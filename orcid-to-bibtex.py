@@ -33,7 +33,7 @@ async def get_orcid_works(orcid_id: str) -> Any:
         bib = []
         for work in results:
             if work['citation']['citation-type'] == 'bibtex':
-                bib.append(work['citation']['citation-value'].encode('utf-8'))
+                bib.append(work['citation']['citation-value'])
 
         '''
             A (very) hacky fix for duplicate entry keys in BibTeX.
@@ -74,8 +74,7 @@ async def main():
     bib_path = args.o or Path(f'{orcid}.bib')
     bib = await get_orcid_works(orcid)
     bib_path.write_text('\n'.join(bib))
+    parse_and_format_bib(bib_path, bib_path)
 
 
-# run(main())
-
-parse_and_format_bib(Path('0000-0002-1543-0148.bib'), Path('0000-0002-1543-0148.bib'))
+run(main())
