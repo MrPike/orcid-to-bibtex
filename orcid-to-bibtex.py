@@ -6,6 +6,7 @@ from typing import Any
 from asyncio import Semaphore, run, gather
 from aiohttp import ClientSession, TCPConnector
 from pathlib import Path
+import bibtexparser as bp
 
 
 async def get_orcid(orcid_path: str, session: ClientSession, dl_limit: Semaphore) -> Any:
@@ -49,6 +50,15 @@ async def get_orcid_works(orcid_id: str) -> Any:
         return bib
 
 
+def parse_and_format_bib(input_bib: Path, out_bib: Path, indent: int = 4, order_by: str | tuple = 'year') -> None:
+    db = bp.loads(input_bib.read_text())
+
+    writer = bp.bwriter.BibTexWriter()
+    writer.indent = ' ' * indent  # indent entries with
+    writer.order_entries_by = order_by
+    out_bib.write_text(writer.write(db))
+
+
 def parse_cli_args() -> Namespace:
     p = ArgumentParser(description='Generates a BibTeX file for a given ORCID id.')
     p.add_argument('ORCID', type=str, metavar='0000-0000-0000-0000',
@@ -66,4 +76,6 @@ async def main():
     bib_path.write_text('\n'.join(bib))
 
 
-run(main())
+# run(main())
+
+parse_and_format_bib(Path('0000-0002-1543-0148.bib'), Path('0000-0002-1543-0148.bib'))
