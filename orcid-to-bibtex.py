@@ -1,4 +1,3 @@
-import pprint
 from collections import defaultdict
 
 from argparse import Namespace, ArgumentParser
@@ -7,6 +6,7 @@ from asyncio import Semaphore, run, gather
 from aiohttp import ClientSession, TCPConnector
 from pathlib import Path
 import bibtexparser as bp
+import yake
 
 
 async def get_orcid(orcid_path: str, session: ClientSession, dl_limit: Semaphore) -> Any:
@@ -35,23 +35,33 @@ async def get_orcid_works(orcid_id: str) -> Any:
             if work['citation']['citation-type'] == 'bibtex':
                 bib.append(work['citation']['citation-value'])
 
-        '''
-            A (very) hacky fix for duplicate entry keys in BibTeX.
-            This will need improving, along with additional processing (formatting, validation) of the resulting
-            BibTeX output. 
-        '''
-        bib_d = defaultdict(int)
-        for i, b in enumerate(bib):
-            bib_key = b.split('{')[1].split(',')[0]
-            bib_d[bib_key] += 1
-            if bib_d[bib_key] > 1:
-                bib[i] = bib[i].replace(f"{{{bib_key},", f"{{{bib_key}_{bib_d[bib_key]},")
-
         return bib
 
 
 def parse_and_format_bib(input_bib: Path, out_bib: Path, indent: int = 4, order_by: str | tuple = 'year') -> None:
     db = bp.loads(input_bib.read_text())
+    bib_id_count = defaultdict(int)
+
+    for e in db.entries:
+        title = ''.join([l for l in e['title'] if l.isalpha() or l.isspace()])
+        keywords = yake.KeywordExtractor().extract_keywords(title)
+        id = e['ID']
+
+        unique = False
+        c = 0
+
+        while not unique:
+            if c < len(keywords):
+                id += '_' + keywords[c][0].replace(' ', '_').title()
+                if id not in bib_id_count:
+                    bib_id_count[id] += 1
+                    unique = True
+            else:
+                bib_id_count[id] += 1
+                id += id + '_' + str(bib_id_count)
+
+        e['ID'] = id
+        print(e['ID'])
 
     writer = bp.bwriter.BibTexWriter()
     writer.indent = ' ' * indent  # indent entries with
