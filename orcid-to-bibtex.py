@@ -49,7 +49,7 @@ async def get_orcid_works(orcid_id: str, max_dls: int = 50, validate_ssl: bool =
         bib = []
         # Extract BibTeX provided by ORCID
         for work in results:
-            if work['citation']['citation-type'] == 'bibtex':
+            if work['citation'] is not None and work['citation']['citation-type'] == 'bibtex':
                 bib.append(work['citation']['citation-value'])
 
         return bib
