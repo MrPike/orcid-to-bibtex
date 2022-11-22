@@ -4,7 +4,7 @@ Command-line program which generates a BibTeX file from an individual's ORCID re
 ## Features
 
 + Concurrent downloading of works from ORCID using [AIOHTTP](https://docs.aiohttp.org/en/stable/)
-+ Intelligent renaming of BibTeX keys (to avoid duplicates) using keyword extraction ([YAKE](https://github.com/LIAAD/yake))on work titles
++ Intelligent renaming of BibTeX keys (to avoid duplicates) using keyword extraction ([YAKE](https://github.com/LIAAD/yake)) on work titles
 
 
 ## Usage
