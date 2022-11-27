@@ -17,13 +17,14 @@ async def get_orcid(orcid_path: str, session: ClientSession, dl_limit: Semaphore
     :param dl_limit: Semaphore controlling the number of simultaneous connections to the ORCID API
     :return: JSON response returned from the ORCID API
     """
-    # TODO - add error handling
     async with dl_limit:
         async with session.get(
                 f"https://pub.orcid.org/{orcid_path}",
                 headers={'Accept': 'application/orcid+json'}
         ) as response:
-            return await response.json()
+            if response.status == 200 and response.content_type == 'application/orcid+json':
+                return await response.json()
+            ## TODO: Add a debug flag and output error details here
 
 
 async def get_orcid_works(orcid_id: str, max_dls: int = 50, validate_ssl: bool = True) -> list[str]:
@@ -49,8 +50,11 @@ async def get_orcid_works(orcid_id: str, max_dls: int = 50, validate_ssl: bool =
         bib = []
         # Extract BibTeX provided by ORCID
         for work in results:
-            if work['citation'] is not None and work['citation']['citation-type'] == 'bibtex':
-                bib.append(work['citation']['citation-value'])
+            if work and 'citation' in work and work['citation'] and 'citation-type' in work['citation']:
+                if work['citation']['citation-type'] == 'bibtex':
+                    bib.append(work['citation']['citation-value'])
+                #TODO: Deal with "formatted-unspecified" citation types.
+                # Consider generating bibtex from the available fields, where possible
 
         return bib
 
