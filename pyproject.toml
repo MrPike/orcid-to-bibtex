@@ -10,6 +10,7 @@ python = "^3.10"
 aiohttp = "^3.8.1"
 bibtexparser = "^1.2.0"
 yake = {git = "https://github.com/LIAAD/yake"}
+doi2bib = "^0.4.0"
 
 [tool.poetry.dev-dependencies]
 
