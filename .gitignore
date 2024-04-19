@@ -1,5 +1,6 @@
 poetry.lock
 .idea
+*.bib
 # General
 .DS_Store
 .AppleDouble
